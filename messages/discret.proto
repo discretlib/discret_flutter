@@ -1,0 +1,102 @@
+syntax = "proto3";
+package discret;
+
+// [RINF:DART-SIGNAL]
+message Connect {
+    int32 id = 1;
+    bytes key_material = 2;
+    bool allow_create = 3;
+    string application_name = 4;
+    string data_path = 5;
+    string data_model = 6;
+    string configuration = 7;
+}
+
+// [RINF:DART-SIGNAL]
+message Login {
+    int32 id = 1;
+    string username = 2;
+    string password = 3;
+    bool allow_create = 4;
+    string application_name = 5;
+    string data_path = 6;
+    string data_model = 7;
+    string configuration = 8;
+}
+
+// [RINF:DART-SIGNAL]
+message Query {
+    int32 id = 1;
+    string query = 2;
+    string parameters = 3;
+}
+
+// [RINF:DART-SIGNAL]
+message Mutate {
+    int32 id = 1;
+    string query = 2;
+    string parameters = 3;
+}
+
+// [RINF:DART-SIGNAL]
+message Delete {
+    int32 id = 1;
+    string query = 2;
+    string parameters = 3;
+}
+
+// [RINF:DART-SIGNAL]
+message VerifyingKey {
+    int32 id = 1;
+}
+
+// [RINF:DART-SIGNAL]
+message PrivateRoom {
+    int32 id = 1;
+}
+
+// [RINF:DART-SIGNAL]
+message Invite {
+    int32 id = 1;
+    string room = 2;
+    string authorisation = 3;
+}
+
+// [RINF:DART-SIGNAL]
+message AcceptInvite {
+    int32 id = 1;
+    string invite = 2;
+}
+
+// [RINF:DART-SIGNAL]
+message DataModel {
+    int32 id = 1;
+}
+
+// [RINF:DART-SIGNAL]
+message UpdateDataModel {
+    int32 id = 1;
+    string datamodel = 2;
+}
+
+
+// [RINF:RUST-SIGNAL]
+message ResultMsg {
+    int32 id = 1;
+    bool successful = 2;
+    string error = 3;
+    string data = 4;
+}
+
+// [RINF:RUST-SIGNAL]
+message EventMsg {
+    string event = 1;
+    string data = 2;
+}
+
+// [RINF:RUST-SIGNAL]
+message LogMsg {
+    string level = 1;
+    string data = 2;
+}
+
