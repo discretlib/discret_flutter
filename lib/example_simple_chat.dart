@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:discret_flutter/messages/discret.pb.dart';
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'discret.dart';
 import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/material.dart';
+
+import './messages/discret.pb.dart';
+import 'discret.dart';
 
 // The application unique identifier
 // ignore: constant_identifier_names
@@ -35,7 +36,6 @@ class ChatState extends ChangeNotifier {
   int lastEntryDate = 0;
   String lastId = Discret.zeroUid();
   late String privateRoom;
-  late String verifyingKey;
   late StreamSubscription<Event> eventlistener;
 
   TextEditingController chatController = TextEditingController();
@@ -45,7 +45,11 @@ class ChatState extends ChangeNotifier {
   // if 'create' is set to true, it will create the database if it does not exists
   //
   Future<ResultMsg> login(String userName, String password, bool create) async {
-    return await Discret().login(userName, password, create);
+    ResultMsg msg = await Discret().login(userName, password, create);
+    if (msg.successful) {
+      await initialise();
+    }
+    return msg;
   }
 
   //
@@ -55,9 +59,6 @@ class ChatState extends ChangeNotifier {
     ResultMsg msg = await Discret().privateRoom();
     privateRoom = msg.data;
 
-    msg = await Discret().verifyingKey();
-    verifyingKey = msg.data;
-
     eventlistener = Discret().eventStream().listen((event) async {
       switch (event.type) {
         case EventType.dataChanged:
@@ -66,6 +67,7 @@ class ChatState extends ChangeNotifier {
         default:
       }
     }, onDone: () {}, onError: (error) {});
+
     refreshChat();
   }
 
@@ -245,7 +247,6 @@ class _LoginScreen extends State<LoginScreen> {
                 nameController.text, passwordController.text, false);
 
             if (result.successful) {
-              await chatState.initialise();
               if (context.mounted) {
                 Navigator.pushReplacementNamed(context, '/home');
               }
@@ -386,7 +387,6 @@ class _CreateAccountScreen extends State<CreateAccountScreen> {
             var result = await chatState.login(
                 nameController.text, passwordController.text, true);
             if (result.successful) {
-              await chatState.initialise();
               if (context.mounted) {
                 Navigator.pushReplacementNamed(context, '/home');
               }
