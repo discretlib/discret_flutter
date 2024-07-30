@@ -550,7 +550,7 @@ class ChatRoomList extends StatelessWidget {
                               ),
                             ),
                             room.mdate != 0
-                                ? Text(readTimestamp(room.lastEntry.date))
+                                ? Text(readTimestamp(room.mdate))
                                 : const Text(""),
                           ],
                         ),
