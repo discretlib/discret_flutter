@@ -87,6 +87,12 @@ class ChatState extends ChangeNotifier {
             var key = peer.verifyingKey;
             logger.log('Peer connected: $key');
           }
+        case EventType.peerDisconnected:
+          {
+            PeerConnection peer = event.data as PeerConnection;
+            var key = peer.verifyingKey;
+            logger.log('Peer disconnected: $key');
+          }
 
         default:
       }
@@ -209,7 +215,6 @@ class ChatState extends ChangeNotifier {
       }
     }""";
     ResultMsg res = await Discret().query(roomQuery, {"roomId": roomId});
-    print(res.data);
     if (!res.successful) {
       logger.log(res.error);
       return;
@@ -854,14 +859,16 @@ Future<void> showInviteDialog(BuildContext context) async {
     ],
   );
 
-  // show the dialog
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return alert;
-    },
-  );
+  if (context.mounted) {
+    // show the dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
 }
 
 //
