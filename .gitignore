@@ -48,5 +48,5 @@ app.*.map.json
 # Rust related
 .cargo/
 target/
-
+Cargo.lock
 
