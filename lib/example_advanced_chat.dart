@@ -66,10 +66,10 @@ class ChatState extends ChangeNotifier {
         case EventType.dataChanged:
           {
             DataModification modif = event.data as DataModification;
-            modif.rooms?.forEach((key, value) {
+            modif.rooms?.forEach((key, value) async {
               if (chatMap.containsKey(key)) {
                 ChatRoom chatRoom = chatMap[key]!;
-                chatRoom.refresh();
+                await chatRoom.refresh();
               }
             });
             chatRooms.sort((a, b) => b.mdate.compareTo(a.mdate));
