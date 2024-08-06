@@ -181,6 +181,19 @@ final $typed_data.Uint8List updateDataModelDescriptor = $convert.base64Decode(
     'Cg9VcGRhdGVEYXRhTW9kZWwSDgoCaWQYASABKAVSAmlkEhwKCWRhdGFtb2RlbBgCIAEoCVIJZG'
     'F0YW1vZGVs');
 
+@$core.Deprecated('Use setLogLevelDescriptor instead')
+const SetLogLevel$json = {
+  '1': 'SetLogLevel',
+  '2': [
+    {'1': 'id', '3': 1, '4': 1, '5': 5, '10': 'id'},
+    {'1': 'level', '3': 2, '4': 1, '5': 9, '10': 'level'},
+  ],
+};
+
+/// Descriptor for `SetLogLevel`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List setLogLevelDescriptor = $convert.base64Decode(
+    'CgtTZXRMb2dMZXZlbBIOCgJpZBgBIAEoBVICaWQSFAoFbGV2ZWwYAiABKAlSBWxldmVs');
+
 @$core.Deprecated('Use resultMsgDescriptor instead')
 const ResultMsg$json = {
   '1': 'ResultMsg',

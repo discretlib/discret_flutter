@@ -416,6 +416,42 @@ new_hash_map.insert(
         Ok(())
     }),
 );
+new_hash_map.insert(
+    11,
+    Box::new(|message_bytes: &[u8], binary: &[u8]| {
+        use super::discret::*;
+        let message =
+            SetLogLevel::decode(message_bytes)
+            .map_err(|_| RinfError::DecodeMessage)?;
+        let dart_signal = DartSignal {
+            message,
+            binary: binary.to_vec(),
+        };
+        let mut guard = SET_LOG_LEVEL_CHANNEL
+            .lock()
+            .map_err(|_| RinfError::LockMessageChannel)?;
+        if guard.is_none() {
+            let (sender, receiver) = unbounded_channel();
+            guard.replace((sender, Some(receiver)));
+        }
+        let mut pair = guard
+            .as_ref()
+            .ok_or(RinfError::NoMessageChannel)?;
+        // After Dart's hot restart or app reopen on mobile devices,
+        // a sender from the previous run already exists
+        // which is now closed.
+        if pair.0.is_closed() {
+            let (sender, receiver) = unbounded_channel();
+            guard.replace((sender, Some(receiver)));
+            pair = guard
+                .as_ref()
+                .ok_or(RinfError::NoMessageChannel)?;
+        }
+        let sender = &pair.0;
+        let _ = sender.send(dart_signal);
+        Ok(())
+    }),
+);
         new_hash_map
     });
 

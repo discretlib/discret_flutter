@@ -260,26 +260,27 @@ class Discret {
   }
 
   ///
+  /// Set the log level
+  ///
+  Future<ResultMsg> setLogLevel(String level) async {
+    int id = newId();
+    SetLogLevel(id: id, level: level).sendSignalToRust();
+
+    await for (final rustSignal in ResultMsg.rustSignalStream) {
+      ResultMsg res = rustSignal.message;
+      if (res.id == id) {
+        return res;
+      }
+    }
+    return ResultMsg(id: id, successful: false);
+  }
+
+  ///
   /// Subscribe for the log stream
   ///
-  Stream<LogMessage> logStream() async* {
+  Stream<LogMsg> logStream() async* {
     await for (final rustSignal in LogMsg.rustSignalStream) {
-      LogMsg log = rustSignal.message;
-      switch (log.level) {
-        case 'Info':
-          final json = jsonDecode(log.data) as Map<String, dynamic>;
-          LogInfo info = LogInfo.fromJson(json);
-          yield LogMessage(LogType.info, info.date, info.message);
-
-        case 'Error':
-          final json = jsonDecode(log.data) as Map<String, dynamic>;
-          LogError err = LogError.fromJson(json);
-          LogMessage msg = LogMessage(LogType.info, err.date, err.message);
-          msg.source = err.source;
-          yield msg;
-
-        default:
-      }
+      yield rustSignal.message;
     }
   }
 
@@ -342,23 +343,6 @@ class Discret {
 }
 
 enum LogType { info, error }
-
-class LogMessage {
-  LogType type;
-  int date;
-  String? source;
-  String message;
-  LogMessage(this.type, this.date, this.message);
-}
-
-@JsonSerializable()
-class LogInfo {
-  int date;
-  String message;
-  LogInfo(this.date, this.message);
-  factory LogInfo.fromJson(Map<String, dynamic> json) =>
-      _$LogInfoFromJson(json);
-}
 
 @JsonSerializable()
 class LogError {

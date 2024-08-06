@@ -6,16 +6,6 @@ part of 'discret.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-LogInfo _$LogInfoFromJson(Map<String, dynamic> json) => LogInfo(
-      (json['date'] as num).toInt(),
-      json['message'] as String,
-    );
-
-Map<String, dynamic> _$LogInfoToJson(LogInfo instance) => <String, dynamic>{
-      'date': instance.date,
-      'message': instance.message,
-    };
-
 LogError _$LogErrorFromJson(Map<String, dynamic> json) => LogError(
       (json['date'] as num).toInt(),
       json['source'] as String,

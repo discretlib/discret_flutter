@@ -29,6 +29,8 @@ void main() async {
   }""";
   await Discret().initialize(APPLICATION_KEY, dataPath, datamodel);
 
+  await Discret().setLogLevel("info");
+
   runApp(
     const ChatApp(),
   );
@@ -44,7 +46,13 @@ class ChatState extends ChangeNotifier {
   late String privateRoom;
   late String myVerifyingKey;
   late StreamSubscription<Event> eventlistener;
-  late StreamSubscription<LogMessage> loglistener;
+
+  final StreamSubscription<LogMsg> loglistener =
+      Discret().logStream().listen((event) async {
+    var message = event.data;
+    var level = event.level;
+    logger.log('$level: $message');
+  });
 
   //
   // Initialise the state after a successfull login
@@ -97,21 +105,6 @@ class ChatState extends ChangeNotifier {
         default:
       }
     }, onDone: () {}, onError: (error) {});
-
-    //Manage logs coming from the Discret library
-    loglistener = Discret().logStream().listen((event) async {
-      var date = DateTime.fromMillisecondsSinceEpoch(event.date);
-      var message = event.message;
-      switch (event.type) {
-        case LogType.info:
-          message = 'INFO: $message';
-
-        case LogType.error:
-          var source = event.source;
-          message = 'ERROR: source: $source message: $message';
-      }
-      logger.log(message, time: date);
-    });
 
     await currentChatRoom.refresh();
     await refreshRoomList();

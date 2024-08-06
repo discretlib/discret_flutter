@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:rinf/rinf.dart';
 
 final rustSignalHandlers = <int, void Function(Uint8List, Uint8List)>{
-11: (Uint8List messageBytes, Uint8List binary) {
+12: (Uint8List messageBytes, Uint8List binary) {
   final message = discret.ResultMsg.fromBuffer(messageBytes);
   final rustSignal = RustSignal(
     message,
@@ -13,7 +13,7 @@ final rustSignalHandlers = <int, void Function(Uint8List, Uint8List)>{
   );
   discret.resultMsgController.add(rustSignal);
 },
-12: (Uint8List messageBytes, Uint8List binary) {
+13: (Uint8List messageBytes, Uint8List binary) {
   final message = discret.EventMsg.fromBuffer(messageBytes);
   final rustSignal = RustSignal(
     message,
@@ -21,7 +21,7 @@ final rustSignalHandlers = <int, void Function(Uint8List, Uint8List)>{
   );
   discret.eventMsgController.add(rustSignal);
 },
-13: (Uint8List messageBytes, Uint8List binary) {
+14: (Uint8List messageBytes, Uint8List binary) {
   final message = discret.LogMsg.fromBuffer(messageBytes);
   final rustSignal = RustSignal(
     message,

@@ -6,6 +6,8 @@ use discret::{
     base64_decode, base64_encode, database_exists, derive_pass_phrase, hash, Configuration,
     DefaultRoom, Discret, Parameters,
 };
+use log::{Level, Metadata, Record};
+
 use messages::discret::*;
 use serde_json::json;
 use std::error::Error;
@@ -170,8 +172,6 @@ pub async fn delete(discret: Arc<Mutex<Option<Discret>>>) -> Result<()> {
         drop(discret);
 
         let query = dart_signal.message;
-        println!("{}", query.id);
-        println!("{}", query.query);
         match app {
             Some(app) => {
                 let res = do_delete(&query.query, &query.parameters, app).await;
@@ -558,48 +558,26 @@ pub async fn event_listener(
     Ok(())
 }
 
-pub async fn log_listener(
-    discret: Arc<Mutex<Option<Discret>>>,
-    discret_started: Arc<Notify>,
-) -> Result<()> {
-    discret_started.notified().await;
-    let discret = discret.lock().await;
-    let app = discret.clone().unwrap();
-    drop(discret);
-    let mut logs = app.subscribe_for_logs().await;
-    while let Ok(log) = logs.recv().await {
-        match log {
-            discret::Log::Info(date, message) => {
-                let peer = json!({
-                    "date":date,
-                    "message": message
-                });
-                let data = serde_json::to_string(&peer);
-
-                if let Ok(data) = data {
-                    LogMsg {
-                        level: "Info".to_string(),
-                        data: data,
-                    }
-                    .send_signal_to_dart();
-                }
+pub async fn log_level(logger: Logger) -> Result<()> {
+    let mut receiver = SetLogLevel::get_dart_signal_receiver()?;
+    while let Some(dart_signal) = receiver.recv().await {
+        let query = dart_signal.message;
+        if logger.set_log_level(&query.level) {
+            ResultMsg {
+                id: query.id,
+                successful: true,
+                error: "".to_string(),
+                data: "Log level set".to_string(),
             }
-            discret::Log::Error(date, source, message) => {
-                let peer = json!({
-                    "date":date,
-                    "source":source,
-                    "message": message
-                });
-                let data = serde_json::to_string(&peer);
-
-                if let Ok(data) = data {
-                    LogMsg {
-                        level: "Error".to_string(),
-                        data: data,
-                    }
-                    .send_signal_to_dart();
-                }
+            .send_signal_to_dart();
+        } else {
+            ResultMsg {
+                id: query.id,
+                successful: false,
+                error: format!("invalid log level '{}' ", query.level),
+                data: "".to_string(),
             }
+            .send_signal_to_dart();
         }
     }
     Ok(())
@@ -738,4 +716,72 @@ async fn do_delete(
 async fn do_accept_invite(invite: &str, app: Discret) -> std::result::Result<(), discret::Error> {
     let invite = base64_decode(invite.as_bytes())?;
     app.accept_invite(invite).await
+}
+
+#[derive(Debug, Clone)]
+pub struct Logger {
+    log_level: Arc<std::sync::Mutex<Level>>,
+}
+impl Logger {
+    pub fn new() -> Self {
+        Self {
+            log_level: Arc::new(std::sync::Mutex::new(Level::Error)),
+        }
+    }
+
+    pub fn set_log_level(&self, level: &str) -> bool {
+        let level = level.to_lowercase();
+        let mut success = false;
+        let mut log_level = self.log_level.lock().unwrap();
+        let check = level.as_str();
+        match check {
+            "error" => {
+                *log_level = Level::Error;
+                success = true
+            }
+            "warn" => {
+                *log_level = Level::Warn;
+                success = true
+            }
+            "info" => {
+                *log_level = Level::Info;
+                success = true
+            }
+            "debug" => {
+                *log_level = Level::Debug;
+                success = true
+            }
+            "trace" => {
+                *log_level = Level::Trace;
+                success = true
+            }
+            _ => {}
+        }
+        success
+    }
+}
+impl log::Log for Logger {
+    fn enabled(&self, metadata: &Metadata) -> bool {
+        let level = self.log_level.lock().unwrap();
+        metadata.level() <= *level
+    }
+
+    fn log(&self, record: &Record) {
+        if self.enabled(record.metadata()) {
+            let level = match record.level() {
+                Level::Error => "Error",
+                Level::Warn => "Warn",
+                Level::Info => "Info",
+                Level::Debug => "Debug",
+                Level::Trace => "Trace",
+            };
+            LogMsg {
+                level: level.to_string(),
+                data: record.args().to_string(),
+            }
+            .send_signal_to_dart();
+        }
+    }
+
+    fn flush(&self) {}
 }

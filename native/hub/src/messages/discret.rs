@@ -131,6 +131,15 @@ pub struct UpdateDataModel {
     #[prost(string, tag="2")]
     pub datamodel: ::prost::alloc::string::String,
 }
+/// \[RINF:DART-SIGNAL\]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SetLogLevel {
+    #[prost(int32, tag="1")]
+    pub id: i32,
+    #[prost(string, tag="2")]
+    pub level: ::prost::alloc::string::String,
+}
 /// \[RINF:RUST-SIGNAL\]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -549,20 +558,42 @@ impl UpdateDataModel {
     }
 }
 
-impl ResultMsg {
-    pub fn send_signal_to_dart(&self) {
-        let result = send_rust_signal(
-            11,
-            self.encode_to_vec(),
-            Vec::new(),
-        );
-        if let Err(error) = result {
-            debug_print!("{error}\n{self:?}");
+type SetLogLevelCell = Mutex<Option<(
+    UnboundedSender<DartSignal<SetLogLevel>>,
+    Option<UnboundedReceiver<DartSignal<SetLogLevel>>>,
+)>>;
+pub static SET_LOG_LEVEL_CHANNEL: SetLogLevelCell =
+    Mutex::new(None);
+
+impl SetLogLevel {
+    pub fn get_dart_signal_receiver()
+        -> Result<UnboundedReceiver<DartSignal<Self>>, RinfError> 
+    {       
+        let mut guard = SET_LOG_LEVEL_CHANNEL
+            .lock()
+            .map_err(|_| RinfError::LockMessageChannel)?;
+        if guard.is_none() {
+            let (sender, receiver) = unbounded_channel();
+            guard.replace((sender, Some(receiver)));
         }
+        let (mut sender, mut receiver_option) = guard
+            .take()
+            .ok_or(RinfError::NoMessageChannel)?;
+        // After Dart's hot restart or app reopen on mobile devices,
+        // a sender from the previous run already exists
+        // which is now closed.
+        if sender.is_closed() {
+            let receiver;
+            (sender, receiver) = unbounded_channel();
+            receiver_option = Some(receiver);
+        }
+        let receiver = receiver_option.ok_or(RinfError::MessageReceiverTaken)?;
+        guard.replace((sender, None));
+        Ok(receiver)
     }
 }
 
-impl EventMsg {
+impl ResultMsg {
     pub fn send_signal_to_dart(&self) {
         let result = send_rust_signal(
             12,
@@ -575,10 +606,23 @@ impl EventMsg {
     }
 }
 
-impl LogMsg {
+impl EventMsg {
     pub fn send_signal_to_dart(&self) {
         let result = send_rust_signal(
             13,
+            self.encode_to_vec(),
+            Vec::new(),
+        );
+        if let Err(error) = result {
+            debug_print!("{error}\n{self:?}");
+        }
+    }
+}
+
+impl LogMsg {
+    pub fn send_signal_to_dart(&self) {
+        let result = send_rust_signal(
+            14,
             self.encode_to_vec(),
             Vec::new(),
         );

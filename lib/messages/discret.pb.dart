@@ -902,6 +902,71 @@ class UpdateDataModel extends $pb.GeneratedMessage {
   void clearDatamodel() => clearField(2);
 }
 
+/// [RINF:DART-SIGNAL]
+class SetLogLevel extends $pb.GeneratedMessage {
+  factory SetLogLevel({
+    $core.int? id,
+    $core.String? level,
+  }) {
+    final $result = create();
+    if (id != null) {
+      $result.id = id;
+    }
+    if (level != null) {
+      $result.level = level;
+    }
+    return $result;
+  }
+  SetLogLevel._() : super();
+  factory SetLogLevel.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory SetLogLevel.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SetLogLevel', package: const $pb.PackageName(_omitMessageNames ? '' : 'discret'), createEmptyInstance: create)
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'id', $pb.PbFieldType.O3)
+    ..aOS(2, _omitFieldNames ? '' : 'level')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  SetLogLevel clone() => SetLogLevel()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  SetLogLevel copyWith(void Function(SetLogLevel) updates) => super.copyWith((message) => updates(message as SetLogLevel)) as SetLogLevel;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SetLogLevel create() => SetLogLevel._();
+  SetLogLevel createEmptyInstance() => create();
+  static $pb.PbList<SetLogLevel> createRepeated() => $pb.PbList<SetLogLevel>();
+  @$core.pragma('dart2js:noInline')
+  static SetLogLevel getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SetLogLevel>(create);
+  static SetLogLevel? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get id => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set id($core.int v) { $_setSignedInt32(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get level => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set level($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasLevel() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearLevel() => clearField(2);
+}
+
 /// [RINF:RUST-SIGNAL]
 class ResultMsg extends $pb.GeneratedMessage {static final rustSignalStream =
     resultMsgController.stream.asBroadcastStream();
@@ -1239,6 +1304,16 @@ extension UpdateDataModelExtension on UpdateDataModel{
   void sendSignalToRust() {
     sendDartSignal(
       10,
+      this.writeToBuffer(),
+      Uint8List(0),
+    );
+  }
+}
+
+extension SetLogLevelExtension on SetLogLevel{
+  void sendSignalToRust() {
+    sendDartSignal(
+      11,
       this.writeToBuffer(),
       Uint8List(0),
     );
